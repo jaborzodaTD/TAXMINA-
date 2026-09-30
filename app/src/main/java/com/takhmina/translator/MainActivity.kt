@@ -224,12 +224,13 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,o
         loading=true;output="";error=""
         scope.launch{
             try{
-                output=online(input.text.trim())
+                val offline=offlineTranslate(input.text.trim(),from.code,to.code)
+                output=offline ?: online(input.text.trim())
                 onXp()
             }catch(e:Exception){
-                val match=PHRASES.firstOrNull{value(it,from.code).equals(input.text.trim(),true)}
-                output=match?.let{value(it,to.code)}?:""
-                if(output.isBlank())error="Internet translation is unavailable. Check your connection and try again."
+                val offline=offlineTranslate(input.text.trim(),from.code,to.code)
+                output=offline ?: ""
+                if(output.isBlank())error="Не удалось выполнить перевод. Проверьте интернет и попробуйте ещё раз."
             }finally{loading=false}
         }
     }
