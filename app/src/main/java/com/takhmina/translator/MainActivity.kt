@@ -214,6 +214,22 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,o
         tts.speak(text,TextToSpeech.QUEUE_FLUSH,null,"takhmina")
     }
 
+    fun copyText(text:String){
+        val clipboard=context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("TAXMINA",text))
+        Toast.makeText(context,"Скопировано",Toast.LENGTH_SHORT).show()
+    }
+
+    fun startVoice(){
+        val intent=Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply{
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE,from.code)
+        }
+        try{voiceLauncher.launch(intent)}catch(_:Exception){
+            Toast.makeText(context,"Голосовой ввод недоступен",Toast.LENGTH_SHORT).show()
+        }
+    }
+
     suspend fun online(q:String):String=withContext(Dispatchers.IO){
         val form=FormBody.Builder().add("q",q).add("langpair","${from.code}|${to.code}").build()
         val request=Request.Builder().url("https://api.mymemory.translated.net/get").post(form).build()
