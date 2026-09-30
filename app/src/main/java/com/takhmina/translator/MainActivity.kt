@@ -96,14 +96,27 @@ fun offlineTranslate(text:String, from:String, to:String):String? {
     val q=normalizeText(text)
     if(from=="ru" && to=="tg") RU_TG_DICTIONARY.firstOrNull{normalizeText(it.ru)==q}?.let{return it.tg}
     if(from=="tg" && to=="ru") RU_TG_DICTIONARY.firstOrNull{normalizeText(it.tg)==q}?.let{return it.ru}
+    if(from=="en" && to=="tg") EN_TG_DICTIONARY.firstOrNull{normalizeText(it.en)==q}?.let{return it.tg}
+    if(from=="tg" && to=="en") EN_TG_DICTIONARY.firstOrNull{normalizeText(it.tg)==q}?.let{return it.en}
     PHRASES.firstOrNull { normalizeText(value(it,from))==q }?.let { return value(it,to) }
-    if(from=="ru" && to=="tg" || from=="tg" && to=="ru"){
+    if((from=="ru" && to=="tg") || (from=="tg" && to=="ru")){
         val parts=text.trim().split(Regex("\\s+"))
         var hits=0
         val result=parts.joinToString(" "){token->
             val clean=token.trimEnd('.',',','!','?','،','؟')
             val translated=if(from=="ru") RU_TG_DICTIONARY.firstOrNull{normalizeText(it.ru)==normalizeText(clean)}?.tg
             else RU_TG_DICTIONARY.firstOrNull{normalizeText(it.tg)==normalizeText(clean)}?.ru
+            if(translated!=null){hits++; translated}else token
+        }
+        if(hits>0) return result
+    }
+    if((from=="en" && to=="tg") || (from=="tg" && to=="en")){
+        val parts=text.trim().split(Regex("\\s+"))
+        var hits=0
+        val result=parts.joinToString(" "){token->
+            val clean=token.trimEnd('.',',','!','?','،','؟')
+            val translated=if(from=="en") EN_TG_DICTIONARY.firstOrNull{normalizeText(it.en)==normalizeText(clean)}?.tg
+            else EN_TG_DICTIONARY.firstOrNull{normalizeText(it.tg)==normalizeText(clean)}?.en
             if(translated!=null){hits++; translated}else token
         }
         if(hits>0) return result
@@ -216,7 +229,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,a
     val context=LocalContext.current
     val scope=rememberCoroutineScope()
     val ru=appLang!="tg"
-    var input by remember{mutableStateOf(TextFieldValue(""))}
+    var input by rememberSaveable{mutableStateOf("")}
     var output by remember{mutableStateOf("")}
     var loading by remember{mutableStateOf(false)}
     var error by remember{mutableStateOf("")}
@@ -224,7 +237,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,a
     val client=remember{OkHttpClient()}
     val voiceLauncher=rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()){result->
         val spoken=result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-        if(!spoken.isNullOrBlank())input=TextFieldValue(spoken)
+        if(!spoken.isNullOrBlank())input=spoken
     }
     val permissionLauncher=rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()){granted->
         if(granted)launchVoice(context,from,voiceLauncher)
@@ -248,7 +261,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,a
     }
 
     fun translate(){
-        val q=input.text.trim()
+        val q=input.trim()
         if(q.isBlank())return
         loading=true;output="";error=""
         scope.launch{
@@ -268,7 +281,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,a
     fun swap(){
         val old=from
         setFrom(to);setTo(old)
-        input=TextFieldValue(output.ifBlank{input.text})
+        input=output.ifBlank{input}
         output=""
     }
 
@@ -279,7 +292,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,a
     }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())){
-        Header(if(ru)"Переводчик" else "Тарҷумон",if(ru)"Русский ↔ Тоҷикӣ • онлайн + офлайн" else "Тоҷикӣ ↔ Русӣ • онлайн + офлайн")
+        Header(if(ru)"Переводчик" else "Тарҷумон",if(ru)"Русский ↔ Тоҷикӣ ↔ English • онлайн + офлайн" else "Тоҷикӣ ↔ Русӣ ↔ English • онлайн + офлайн")
         Card(Modifier.padding(horizontal=16.dp).fillMaxWidth(),RoundedCornerShape(30.dp),colors=CardDefaults.cardColors(containerColor=PANEL)){
             Column(Modifier.padding(16.dp)){
                 Row(verticalAlignment=Alignment.CenterVertically){
@@ -304,12 +317,12 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,a
                         )
                         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End){
                             IconButton(onClick=::startVoice){Icon(Icons.Default.Mic,if(ru)"Голос" else "Овоз",tint=CYAN)}
-                            IconButton(onClick={input=TextFieldValue("");output="";error=""}){Icon(Icons.Default.DeleteOutline,if(ru)"Очистить" else "Тоза кардан",tint=TEXT2)}
+                            IconButton(onClick={input="";output="";error=""}){Icon(Icons.Default.DeleteOutline,if(ru)"Очистить" else "Тоза кардан",tint=TEXT2)}
                         }
                     }
                 }
                 Spacer(Modifier.height(10.dp))
-                Button(onClick=::translate,enabled=input.text.isNotBlank()&&!loading,modifier=Modifier.fillMaxWidth().height(56.dp),shape=RoundedCornerShape(18.dp)){
+                Button(onClick=::translate,enabled=input.isNotBlank()&&!loading,modifier=Modifier.fillMaxWidth().height(56.dp),shape=RoundedCornerShape(18.dp)){
                     if(loading)CircularProgressIndicator(Modifier.size(22.dp),strokeWidth=2.dp,color=Color.White)
                     else{Icon(Icons.Default.AutoAwesome,null);Spacer(Modifier.width(8.dp));Text(if(ru)"ПЕРЕВЕСТИ" else "ТАРҶУМА КАРДАН",fontWeight=FontWeight.ExtraBold)}
                 }
