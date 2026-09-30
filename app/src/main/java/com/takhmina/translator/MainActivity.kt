@@ -258,7 +258,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,o
     fun swap(){val x=from;setFrom(to);setTo(x);input=TextFieldValue(output.ifBlank{input.text});output=""}
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())){
-        Header("Translator","7 languages • translate and learn in one place")
+        Header("Переводчик","🇹🇯 Тоҷикӣ • 🇷🇺 Русский • ещё 5 языков")
         Row(Modifier.padding(horizontal=20.dp),verticalAlignment=Alignment.CenterVertically){
             LanguagePicker(from,setFrom)
             IconButton(onClick={swap()}){Icon(Icons.Default.SwapHoriz,"Swap",tint=CYAN)}
@@ -270,12 +270,12 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,o
                 OutlinedTextField(
                     value=input,onValueChange={input=it;error=""},
                     modifier=Modifier.fillMaxWidth().heightIn(min=145.dp),
-                    placeholder={Text("Write, paste or use voice…",color=TEXT2)},
+                    placeholder={Text("Напишите, вставьте или используйте голос…",color=TEXT2)},
                     label={Text("${from.flag} ${from.name}")},
                     shape=RoundedCornerShape(20.dp)
                 )
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End){
-                    IconButton(onClick={}){Icon(Icons.Default.Mic,"Voice input",tint=CYAN)}
+                    IconButton(onClick={::startVoice}){Icon(Icons.Default.Mic,"Voice input",tint=CYAN)}
                     IconButton(onClick={ {input=TextFieldValue("");output=""} }){Icon(Icons.Default.DeleteOutline,"Clear",tint=TEXT2)}
                 }
                 Button(
@@ -302,14 +302,14 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,o
                         AssistChip(onClick={},label={Text("+5 XP")},leadingIcon={Icon(Icons.Default.Bolt,null)})
                         Spacer(Modifier.width(7.dp))
                         IconButton(onClick={ {speak(output,to)} }){Icon(Icons.Default.VolumeUp,"Speak")}
-                        IconButton(onClick={}){Icon(Icons.Default.ContentCopy,"Copy")}
+                        IconButton(onClick={ {copyText(output)} }){Icon(Icons.Default.ContentCopy,"Copy")}
                     }
                 }
             }
         }
         if(error.isNotBlank())Text(error,color=Color(0xFFFF9A9A),Modifier.padding(20.dp))
         Spacer(Modifier.height(20.dp))
-        Text("Quick phrases",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
+        Text("Быстрые фразы",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
         PHRASES.take(8).forEach{p->
             Card(Modifier.padding(horizontal=20.dp,vertical=4.dp).fillMaxWidth().clickable{input=TextFieldValue(value(p,from.code));output=""},RoundedCornerShape(18.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF0F1527))){
                 Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){
