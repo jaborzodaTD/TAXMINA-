@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.FormBody
 import okhttp3.OkHttpClient
+import java.net.URLEncoder
 import okhttp3.Request
 import org.json.JSONObject
 import java.util.Locale
@@ -98,12 +98,12 @@ fun offlineTranslate(text:String, from:String, to:String):String? {
 class MainActivity:ComponentActivity(){
     override fun onCreate(savedInstanceState:Bundle?){
         super.onCreate(savedInstanceState)
-        setContent{ TakhminaTheme{ TakhminaApp() } }
+        setContent(content = { TakhminaTheme(content = { TakhminaApp() }) })
     }
 }
 
 @Composable
-fun TakhminaTheme(content:@Composable()->Unit){
+fun TakhminaTheme(content: @Composable () -> Unit){
     MaterialTheme(
         colorScheme=darkColorScheme(
             background=BG,surface=PANEL,surfaceVariant=PANEL2,
@@ -231,8 +231,10 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,o
     }
 
     suspend fun online(q:String):String=withContext(Dispatchers.IO){
-        val form=FormBody.Builder().add("q",q).add("langpair","${from.code}|${to.code}").build()
-        val request=Request.Builder().url("https://api.mymemory.translated.net/get").post(form).build()
+        val encodedQ = URLEncoder.encode(q, "UTF-8")
+        val encodedPair = URLEncoder.encode("${from.code}|${to.code}", "UTF-8")
+        val url = "https://api.mymemory.translated.net/get?q=$encodedQ&langpair=$encodedPair"
+        val request=Request.Builder().url(url).get().build()
         client.newCall(request).execute().use{r->
             if(!r.isSuccessful) throw IllegalStateException("HTTP ${r.code}")
             JSONObject(r.body?.string()?:"").getJSONObject("responseData").getString("translatedText")
