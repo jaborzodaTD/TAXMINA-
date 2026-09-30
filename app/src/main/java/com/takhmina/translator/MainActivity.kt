@@ -197,6 +197,10 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,o
     var loading by remember{mutableStateOf(false)}
     var error by remember{mutableStateOf("")}
     var favorite by remember{mutableStateOf(false)}
+    val voiceLauncher=rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()){ result ->
+        val spoken=result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+        if(!spoken.isNullOrBlank()) input=TextFieldValue(spoken)
+    }
     val client=remember{OkHttpClient()}
     val tts=remember{TextToSpeech(context,null)}
     DisposableEffect(Unit){onDispose{tts.shutdown()}}
