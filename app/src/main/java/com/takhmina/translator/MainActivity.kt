@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
@@ -55,8 +54,8 @@ data class Lang(val code:String,val name:String,val flag:String)
 data class Phrase(val en:String,val tg:String,val ru:String,val kk:String,val uz:String,val de:String,val ka:String)
 
 val LANGS = listOf(
-    Lang("en","English","🇬🇧"), Lang("tg","Тоҷикӣ","🇹🇯"),
-    Lang("ru","Русский","🇷🇺"), Lang("kk","Қазақша","🇰🇿"),
+    Lang("tg","Тоҷикӣ","🇹🇯"), Lang("ru","Русский","🇷🇺"),
+    Lang("en","English","🇬🇧"), Lang("kk","Қазақша","🇰🇿"),
     Lang("uz","O‘zbekcha","🇺🇿"), Lang("de","Deutsch","🇩🇪"), Lang("ka","ქართული","🇬🇪")
 )
 
@@ -118,8 +117,8 @@ fun TakhminaApp(){
     var tab by remember{mutableIntStateOf(0)}
     var xp by remember{mutableIntStateOf(120)}
     var streak by remember{mutableIntStateOf(4)}
-    var from by remember{mutableStateOf(LANGS[0])}
-    var to by remember{mutableStateOf(LANGS[1])}
+    var from by remember{mutableStateOf(LANGS[1])}
+    var to by remember{mutableStateOf(LANGS[0])}
     Scaffold(
         containerColor=BG,
         bottomBar={
