@@ -86,6 +86,14 @@ val PHRASES = listOf(
 fun value(p:Phrase, code:String)=when(code){
     "en"->p.en;"tg"->p.tg;"ru"->p.ru;"kk"->p.kk;"uz"->p.uz;"ka"->p.ka;else->p.de
 }
+fun normalizeText(text:String):String = text.trim().lowercase(Locale.ROOT).replace(Regex("\\s+")," ").trimEnd('.','!','?',',','،')
+
+fun offlineTranslate(text:String, from:String, to:String):String? {
+    if(from==to) return text.trim()
+    val q=normalizeText(text)
+    return PHRASES.firstOrNull { normalizeText(value(it,from))==q }?.let { value(it,to) }
+}
+
 
 class MainActivity:ComponentActivity(){
     override fun onCreate(savedInstanceState:Bundle?){
