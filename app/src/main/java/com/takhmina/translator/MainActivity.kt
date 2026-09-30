@@ -381,19 +381,19 @@ private suspend fun onlineTranslate(client:OkHttpClient,q:String,from:String,to:
 }
 
 @Composable
-fun LearnScreen(xp:Int,streak:Int,onXp:()->Unit){
+fun LearnScreen(xp:Int,streak:Int,appLang:String,onXp:()->Unit){
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())){
-        Header("Learn","A structured path from beginner to confident speaker")
+        Header(if(appLang=="tg")"Омӯзиш" else "Обучение",if(appLang=="tg")"Аз калимаҳои аввал то гуфтугӯи озод" else "От первых слов до уверенного общения")
         Card(Modifier.padding(horizontal=20.dp).fillMaxWidth(),RoundedCornerShape(28.dp),colors=CardDefaults.cardColors(containerColor=PANEL)){
             Row(Modifier.padding(20.dp),verticalAlignment=Alignment.CenterVertically){
                 Box(Modifier.size(62.dp).clip(CircleShape).background(Brush.linearGradient(listOf(PRIMARY,CYAN))),contentAlignment=Alignment.Center){Text("🔥",fontSize=27.sp)}
                 Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f)){Text("${streak} day streak",fontSize=20.sp,fontWeight=FontWeight.Bold);Text("${xp} XP • Daily goal 20 XP",color=TEXT2)}
+                Column(Modifier.weight(1f)){Text("${streak} ${if(appLang=="tg")"рӯз пай дар пай" else "дней подряд"}",fontSize=20.sp,fontWeight=FontWeight.Bold);Text("${xp} XP • ${if(appLang=="tg")"Ҳадафи рӯзона 20 XP" else "Дневная цель 20 XP"}",color=TEXT2)}
                 Icon(Icons.Default.ChevronRight,null,tint=CYAN)
             }
         }
         Spacer(Modifier.height(18.dp))
-        Text("Learning path",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
+        Text(if(appLang=="tg")"Роҳи омӯзиш" else "Путь обучения",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
         val units=listOf(
             Triple("A1","Greetings & basics","Hello • names • countries"),
             Triple("A1","Everyday life","Food • time • family"),
@@ -406,13 +406,13 @@ fun LearnScreen(xp:Int,streak:Int,onXp:()->Unit){
                 Row(Modifier.padding(17.dp),verticalAlignment=Alignment.CenterVertically){
                     Box(Modifier.size(48.dp).clip(CircleShape).background(if(i==0)PRIMARY.copy(.28f) else Color(0xFF1A2239)),contentAlignment=Alignment.Center){Text("${i+1}",fontWeight=FontWeight.Bold)}
                     Spacer(Modifier.width(14.dp))
-                    Column(Modifier.weight(1f)){Text("${u.first} • ${u.second}",fontWeight=FontWeight.Bold,fontSize=16.sp);Text(u.third,color=TEXT2,fontSize=13.sp)}
+                    Column(Modifier.weight(1f)){Text("${u.first} • ${u.second}",fontWeight=FontWeight.Bold,fontSize=16.sp);Text(if(appLang=="tg")"Луғат • грамматика • гуфтор" else u.third,color=TEXT2,fontSize=13.sp)}
                     Icon(if(i==0)Icons.Default.PlayArrow else Icons.Default.Lock,null,tint=if(i==0)CYAN else TEXT2)
                 }
             }
         }
         Spacer(Modifier.height(22.dp))
-        Text("Skill packs",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
+        Text(if(appLang=="tg")"Бахшҳои омӯзишӣ" else "Skill packs",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
         Row(Modifier.padding(20.dp).horizontalScroll(rememberScrollState())){listOf("Vocabulary","Grammar","Listening","Speaking","Travel").forEach{SkillCard(it)}}
         Spacer(Modifier.height(30.dp))
     }
@@ -426,7 +426,7 @@ fun SkillCard(title:String){
 }
 
 @Composable
-fun PracticeScreen(onXp:()->Unit){
+fun PracticeScreen(appLang:String,onXp:()->Unit){
     var index by remember{mutableIntStateOf(0)}
     var selected by remember{mutableStateOf("")}
     var checked by remember{mutableStateOf(false)}
@@ -434,12 +434,12 @@ fun PracticeScreen(onXp:()->Unit){
     val q=PHRASES[index%PHRASES.size]
     val options=remember(index){listOf(q.tg,PHRASES[(index+3)%PHRASES.size].tg,PHRASES[(index+6)%PHRASES.size].tg).shuffled()}
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())){
-        Header("Practice","Fast challenges • memory • +15 XP")
+        Header(if(appLang=="tg")"Машқ" else "Практика",if(appLang=="tg")"Саволҳои кӯтоҳ барои мустаҳкам кардани хотира" else "Короткие задания для тренировки памяти")
         Card(Modifier.padding(20.dp).fillMaxWidth(),RoundedCornerShape(28.dp),colors=CardDefaults.cardColors(containerColor=PANEL)){
             Column(Modifier.padding(22.dp)){
-                Row{Text("Question ${index+1}",color=CYAN,fontWeight=FontWeight.Bold);Spacer(Modifier.weight(1f));Text("${correctCount} correct",color=TEXT2)}
+                Row{Text("Question ${index+1}",color=CYAN,fontWeight=FontWeight.Bold);Spacer(Modifier.weight(1f));Text("${correctCount} ${if(appLang=="tg")"дуруст" else "верно"}",color=TEXT2)}
                 Spacer(Modifier.height(20.dp))
-                Text("Translate into Tajik:",color=TEXT2)
+                Text(if(appLang=="tg")"Ба тоҷикӣ тарҷума кунед:" else "Переведите на таджикский:",color=TEXT2)
                 Text(q.en,fontSize=29.sp,fontWeight=FontWeight.ExtraBold)
                 Spacer(Modifier.height(20.dp))
                 options.forEach{answer->
@@ -448,7 +448,7 @@ fun PracticeScreen(onXp:()->Unit){
                 if(checked){
                     val ok=selected==q.tg
                     Text(if(ok) "✓ Excellent! +15 XP" else "Correct answer: ${q.tg}", color=if(ok) GREEN else Color(0xFFFF9C9C), modifier=Modifier.padding(top=12.dp))
-                    Button(onClick={if(ok){correctCount++;onXp()};index++;selected="";checked=false},Modifier.fillMaxWidth().padding(top=12.dp),shape=RoundedCornerShape(17.dp)){Text("NEXT CHALLENGE")}
+                    Button(onClick={if(ok){correctCount++;onXp()};index++;selected="";checked=false},Modifier.fillMaxWidth().padding(top=12.dp),shape=RoundedCornerShape(17.dp)){Text(if(appLang=="tg")"САВОЛИ НАВ" else "СЛЕДУЮЩИЙ ВОПРОС")}
                 }
             }
         }
@@ -468,9 +468,21 @@ fun ListTile(icon:androidx.compose.ui.graphics.vector.ImageVector,title:String,s
 }
 
 @Composable
-fun ProfileScreen(xp:Int,streak:Int){
+fun ProfileScreen(xp:Int,streak:Int,appLang:String,setAppLanguage:(String)->Unit){
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())){
-        Header("Profile","Your progress, achievements and language goals")
+        Header(if(appLang=="tg")"Профил" else "Профиль",if(appLang=="tg")"Танзимоти барнома ва пешрафти шумо" else "Настройки приложения и ваш прогресс")
+        Card(Modifier.padding(horizontal=20.dp).fillMaxWidth(),RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=PANEL)){
+            Column(Modifier.padding(16.dp)){
+                Text(if(appLang=="tg")"Забони барнома" else "Язык приложения",color=TEXT2,fontSize=12.sp)
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.fillMaxWidth()){
+                    Button(onClick={setAppLanguage("ru")},modifier=Modifier.weight(1f),colors=ButtonDefaults.buttonColors(containerColor=if(appLang=="ru")PRIMARY else PANEL_2)){Text("🇷🇺 Русский")}
+                    Spacer(Modifier.width(8.dp))
+                    Button(onClick={setAppLanguage("tg")},modifier=Modifier.weight(1f),colors=ButtonDefaults.buttonColors(containerColor=if(appLang=="tg")PRIMARY else PANEL_2)){Text("🇹🇯 Тоҷикӣ")}
+                }
+            }
+        }
+        Spacer(Modifier.height(14.dp))
         Card(Modifier.padding(20.dp).fillMaxWidth(),RoundedCornerShape(30.dp),colors=CardDefaults.cardColors(containerColor=PANEL)){
             Column(Modifier.padding(22.dp)){
                 Row(verticalAlignment=Alignment.CenterVertically){
@@ -482,9 +494,9 @@ fun ProfileScreen(xp:Int,streak:Int){
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly){Stat("${xp}","XP");Stat("${streak}","STREAK");Stat("7","LANGUAGES")}
             }
         }
-        Text("Achievements",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
+        Text(if(appLang=="tg")"Натиҷаҳо" else "Достижения",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
         Row(Modifier.padding(20.dp).horizontalScroll(rememberScrollState())){Achievement("🔥","7 day","Keep going");Achievement("⚡","100 XP","First sprint");Achievement("🌍","7 langs","Explorer")}
-        Text("Language progress",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
+        Text(if(appLang=="tg")"Пешрафти забонҳо" else "Прогресс языков",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
         LANGS.forEachIndexed{idx,l->
             Column(Modifier.padding(horizontal=20.dp,vertical=7.dp)){
                 Row{Text("${l.flag} ${l.name}",Modifier.weight(1f),fontWeight=FontWeight.SemiBold);Text(if(idx==0)"72%" else "28%",color=TEXT2)}
