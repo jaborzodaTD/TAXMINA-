@@ -376,7 +376,7 @@ private suspend fun onlineTranslate(client:OkHttpClient,q:String,from:String,to:
         val json=JSONObject(r.body?.string()?:"")
         val result=json.optJSONObject("responseData")?.optString("translatedText").orEmpty().trim()
         if(result.isBlank())throw IllegalStateException("empty translation")
-        result.replace("&quot;",""").replace("&#39;","'").replace("&amp;","&").replace("&lt;","<").replace("&gt;",">")
+        result.replace("&quot;",String.fromCharCode(34)).replace("&#39;",String.fromCharCode(39)).replace("&amp;","&").replace("&lt;","<").replace("&gt;",">")
     }
 }
 
@@ -437,7 +437,7 @@ fun PracticeScreen(appLang:String,onXp:()->Unit){
         Header(if(appLang=="tg")"Машқ" else "Практика",if(appLang=="tg")"Саволҳои кӯтоҳ барои мустаҳкам кардани хотира" else "Короткие задания для тренировки памяти")
         Card(Modifier.padding(20.dp).fillMaxWidth(),RoundedCornerShape(28.dp),colors=CardDefaults.cardColors(containerColor=PANEL)){
             Column(Modifier.padding(22.dp)){
-                Row{Text("Question ${index+1}",color=CYAN,fontWeight=FontWeight.Bold);Spacer(Modifier.weight(1f));Text("${correctCount} ${if(appLang=="tg")"дуруст" else "верно"}",color=TEXT2)}
+                Row{Text("${if(appLang=="tg")"Савол" else "Вопрос"} ${index+1}",color=CYAN,fontWeight=FontWeight.Bold);Spacer(Modifier.weight(1f));Text("${correctCount} ${if(appLang=="tg")"дуруст" else "верно"}",color=TEXT2)}
                 Spacer(Modifier.height(20.dp))
                 Text(if(appLang=="tg")"Ба тоҷикӣ тарҷума кунед:" else "Переведите на таджикский:",color=TEXT2)
                 Text(q.en,fontSize=29.sp,fontWeight=FontWeight.ExtraBold)
@@ -452,8 +452,8 @@ fun PracticeScreen(appLang:String,onXp:()->Unit){
                 }
             }
         }
-        Text("Practice modes",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
-        listOf("Multiple choice","Word matching","Listening","Fill the gap","Speed round").forEach{ListTile(Icons.Default.Bolt,it,"Daily challenge ready")}
+        Text(if(appLang=="tg")"Усулҳои машқ" else "Режимы практики",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
+        listOf(if(appLang=="tg")"Интихоби ҷавоб" else "Выбор ответа",if(appLang=="tg")"Ҷуфт кардани калимаҳо" else "Сопоставление слов",if(appLang=="tg")"Гӯш кардан" else "Аудирование",if(appLang=="tg")"Ҷойи холиро пур кунед" else "Заполнить пропуск",if(appLang=="tg")"Даври тез" else "Быстрый раунд").forEach{ListTile(Icons.Default.Bolt,it,if(appLang=="tg")"Омода" else "Готово")}
         Spacer(Modifier.height(30.dp))
     }
 }
@@ -488,14 +488,14 @@ fun ProfileScreen(xp:Int,streak:Int,appLang:String,setAppLanguage:(String)->Unit
                 Row(verticalAlignment=Alignment.CenterVertically){
                     Box(Modifier.size(66.dp).clip(CircleShape).background(Brush.linearGradient(listOf(PRIMARY,CYAN))),contentAlignment=Alignment.Center){Text("T",fontSize=30.sp,fontWeight=FontWeight.Black)}
                     Spacer(Modifier.width(14.dp))
-                    Column{Text("Takhmina Learner",fontSize=22.sp,fontWeight=FontWeight.ExtraBold);Text("Language explorer",color=TEXT2)}
+                    Column{Text(if(appLang=="tg")"Омӯзандаи TAXMINA" else "TAXMINA Learner",fontSize=22.sp,fontWeight=FontWeight.ExtraBold);Text(if(appLang=="tg")"Ҷаҳонгарди забонҳо" else "Исследователь языков",color=TEXT2)}
                 }
                 Spacer(Modifier.height(20.dp))
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly){Stat("${xp}","XP");Stat("${streak}","STREAK");Stat("7","LANGUAGES")}
             }
         }
         Text(if(appLang=="tg")"Натиҷаҳо" else "Достижения",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
-        Row(Modifier.padding(20.dp).horizontalScroll(rememberScrollState())){Achievement("🔥","7 day","Keep going");Achievement("⚡","100 XP","First sprint");Achievement("🌍","7 langs","Explorer")}
+        Row(Modifier.padding(20.dp).horizontalScroll(rememberScrollState())){Achievement("🔥",if(appLang=="tg")"7 рӯз" else "7 дней",if(appLang=="tg")"Давом диҳед" else "Продолжайте");Achievement("⚡","100 XP",if(appLang=="tg")"Қадами аввал" else "Первый рывок");Achievement("🌍","7 langs",if(appLang=="tg")"Ҷаҳонгард" else "Исследователь")}
         Text(if(appLang=="tg")"Пешрафти забонҳо" else "Прогресс языков",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
         LANGS.forEachIndexed{idx,l->
             Column(Modifier.padding(horizontal=20.dp,vertical=7.dp)){
