@@ -46,7 +46,6 @@ import okhttp3.Request
 import org.json.JSONObject
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeUnit
 
 private val BG = Color(0xFF080B16)
 private val PANEL = Color(0xFF11172A)
@@ -61,12 +60,7 @@ private val HTTP_CLIENT = OkHttpClient.Builder()
     .writeTimeout(10, TimeUnit.SECONDS)
     .retryOnConnectionFailure(true)
     .build()
-private val HTTP_CLIENT = OkHttpClient.Builder()
-    .connectTimeout(10, TimeUnit.SECONDS)
-    .readTimeout(15, TimeUnit.SECONDS)
-    .writeTimeout(10, TimeUnit.SECONDS)
-    .retryOnConnectionFailure(true)
-    .build()
+
 
 data class Lang(val code:String,val name:String,val flag:String)
 data class Phrase(val en:String,val tg:String,val ru:String,val kk:String,val uz:String,val de:String,val ka:String)
