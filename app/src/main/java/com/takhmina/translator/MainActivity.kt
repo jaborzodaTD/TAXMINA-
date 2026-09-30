@@ -1,9 +1,11 @@
 package com.takhmina.translator
 
+import android.Manifest
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
@@ -30,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -84,14 +87,28 @@ val PHRASES = listOf(
 )
 
 fun value(p:Phrase, code:String)=when(code){
-    "en"->p.en;"tg"->p.tg;"ru"->p.ru;"kk"->p.kk;"uz"->p.uz;"ka"->p.ka;else->p.de
+    "en"->p.en;"tg"->p.tg;"ru"->p.ru;"kk"->p.kk;"uz"->p.uz;"ka"->p.ka;"de"->p.de;else->p.ru
 }
-fun normalizeText(text:String):String = text.trim().lowercase(Locale.ROOT).replace(Regex("\\s+")," ").trimEnd('.','!','?',',','،')
+fun normalizeText(text:String):String = text.trim().lowercase(Locale.ROOT).replace('ё','е').replace(Regex("\\s+")," ").trimEnd('.','!','?',',','،','؟')
 
 fun offlineTranslate(text:String, from:String, to:String):String? {
     if(from==to) return text.trim()
     val q=normalizeText(text)
-    return PHRASES.firstOrNull { normalizeText(value(it,from))==q }?.let { value(it,to) }
+    if(from=="ru" && to=="tg") RU_TG_DICTIONARY.firstOrNull{normalizeText(it.ru)==q}?.let{return it.tg}
+    if(from=="tg" && to=="ru") RU_TG_DICTIONARY.firstOrNull{normalizeText(it.tg)==q}?.let{return it.ru}
+    PHRASES.firstOrNull { normalizeText(value(it,from))==q }?.let { return value(it,to) }
+    if(from=="ru" && to=="tg" || from=="tg" && to=="ru"){
+        val parts=text.trim().split(Regex("\\s+"))
+        var hits=0
+        val result=parts.joinToString(" "){token->
+            val clean=token.trimEnd('.',',','!','?','،','؟')
+            val translated=if(from=="ru") RU_TG_DICTIONARY.firstOrNull{normalizeText(it.ru)==normalizeText(clean)}?.tg
+            else RU_TG_DICTIONARY.firstOrNull{normalizeText(it.tg)==normalizeText(clean)}?.ru
+            if(translated!=null){hits++; translated}else token
+        }
+        if(hits>0) return result
+    }
+    return null
 }
 
 
@@ -118,17 +135,23 @@ fun TakhminaApp(){
     var tab by remember{mutableIntStateOf(0)}
     var xp by remember{mutableIntStateOf(120)}
     var streak by remember{mutableIntStateOf(4)}
+    var appLang by remember{mutableStateOf("ru")}
     var from by remember{mutableStateOf(LANGS[1])}
     var to by remember{mutableStateOf(LANGS[0])}
     Scaffold(
         containerColor=BG,
         bottomBar={
             NavigationBar(containerColor=Color(0xFF0D1222)){
-                val nav=listOf(
-                    "Translate" to Icons.Default.Translate,
-                    "Learn" to Icons.Default.School,
-                    "Practice" to Icons.Default.Bolt,
-                    "Profile" to Icons.Default.Person
+                val nav=if(appLang=="tg") listOf(
+                    "Тарҷума" to Icons.Default.Translate,
+                    "Омӯзиш" to Icons.Default.School,
+                    "Машқ" to Icons.Default.Bolt,
+                    "Профил" to Icons.Default.Person
+                ) else listOf(
+                    "Перевод" to Icons.Default.Translate,
+                    "Обучение" to Icons.Default.School,
+                    "Практика" to Icons.Default.Bolt,
+                    "Профиль" to Icons.Default.Person
                 )
                 nav.forEachIndexed{ i,(label,icon)->
                     NavigationBarItem(
@@ -145,10 +168,10 @@ fun TakhminaApp(){
     ){ pad->
         Box(Modifier.fillMaxSize().padding(pad)){
             when(tab){
-                0->TranslatorScreen(from,to,{from=it},{to=it},{xp+=5})
-                1->LearnScreen(xp,streak){xp+=10}
-                2->PracticeScreen{xp+=15}
-                else->ProfileScreen(xp,streak)
+                0->TranslatorScreen(from,to,{from=it},{to=it},appLang,{xp+=5})
+                1->LearnScreen(xp,streak,appLang){xp+=10}
+                2->PracticeScreen(appLang){xp+=15}
+                else->ProfileScreen(xp,streak,appLang){appLang=it}
             }
         }
     }
