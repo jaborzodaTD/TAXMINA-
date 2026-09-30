@@ -46,39 +46,39 @@ private val GREEN = Color(0xFF54E39B)
 private val TEXT2 = Color(0xFFA9B3CC)
 
 data class Lang(val code:String,val name:String,val flag:String)
-data class Phrase(val en:String,val tg:String,val ru:String,val kk:String,val uz:String,val de:String)
+data class Phrase(val en:String,val tg:String,val ru:String,val kk:String,val uz:String,val de:String,val ka:String)
 
 val LANGS = listOf(
     Lang("en","English","🇬🇧"), Lang("tg","Тоҷикӣ","🇹🇯"),
     Lang("ru","Русский","🇷🇺"), Lang("kk","Қазақша","🇰🇿"),
-    Lang("uz","O‘zbekcha","🇺🇿"), Lang("de","Deutsch","🇩🇪")
+    Lang("uz","O‘zbekcha","🇺🇿"), Lang("de","Deutsch","🇩🇪"), Lang("ka","ქართული","🇬🇪")
 )
 
 val PHRASES = listOf(
-    Phrase("Hello","Салом","Привет","Сәлем","Salom","Hallo"),
-    Phrase("Good morning","Субҳ ба хайр","Доброе утро","Қайырлы таң","Xayrli tong","Guten Morgen"),
-    Phrase("Good evening","Шоми хуш","Добрый вечер","Қайырлы кеш","Xayrli kech","Guten Abend"),
-    Phrase("Good night","Шаби хуш","Спокойной ночи","Қайырлы түн","Xayrli tun","Gute Nacht"),
-    Phrase("How are you?","Шумо чӣ хелед?","Как вы?","Қалыңыз қалай?","Qalaysiz?","Wie geht es dir?"),
-    Phrase("Thank you","Ташаккур","Спасибо","Рақмет","Rahmat","Danke"),
-    Phrase("You're welcome","Марҳамат","Пожалуйста","Оқасы жоқ","Arzimaydi","Bitte schön"),
-    Phrase("Please","Лутфан","Пожалуйста","Өтінемін","Iltimos","Bitte"),
-    Phrase("I love you","Ман туро дӯст медорам","Я тебя люблю","Мен сені жақсы көремін","Men seni sevaman","Ich liebe dich"),
-    Phrase("What is your name?","Номи шумо чист?","Как вас зовут?","Атыңыз кім?","Ismingiz nima?","Wie heißt du?"),
-    Phrase("My name is Fayzali","Номи ман Файзалӣ аст","Меня зовут Файзали","Менің атым Файзали","Mening ismim Fayzali","Ich heiße Fayzali"),
-    Phrase("Where are you from?","Шумо аз куҷоед?","Откуда вы?","Сіз қайдансыз?","Qayerdansiz?","Woher kommst du?"),
-    Phrase("I am from Tajikistan","Ман аз Тоҷикистон ҳастам","Я из Таджикистана","Мен Тәжікстаннанмын","Men Tojikistondanman","Ich komme aus Tadschikistan"),
-    Phrase("Where is the station?","Истгоҳ дар куҷост?","Где находится вокзал?","Вокзал қайда?","Vokzal qayerda?","Wo ist der Bahnhof?"),
-    Phrase("How much does it cost?","Ин чанд пул аст?","Сколько это стоит?","Бұл қанша тұрады?","Bu qancha turadi?","Wie viel kostet das?"),
-    Phrase("I don't understand","Ман намефаҳмам","Я не понимаю","Мен түсінбеймін","Men tushunmayapman","Ich verstehe nicht"),
-    Phrase("Please speak slowly","Лутфан оҳиста гап занед","Говорите, пожалуйста, медленнее","Баяу сөйлеңізші","Iltimos, sekin gapiring","Bitte sprechen Sie langsam"),
-    Phrase("Can you help me?","Метавонед ба ман кӯмак кунед?","Вы можете мне помочь?","Маған көмектесе аласыз ба?","Menga yordam bera olasizmi?","Können Sie mir helfen?"),
-    Phrase("I am learning languages","Ман забонҳо меомӯзам","Я изучаю языки","Мен тіл үйреніп жүрмін","Men tillarni o‘rganyapman","Ich lerne Sprachen"),
-    Phrase("See you tomorrow","Пагоҳ мебинем","Увидимся завтра","Ертең кездесеміз","Ertaga ko‘rishamiz","Bis morgen")
+    Phrase("Hello","Салом","Привет","Сәлем","Salom","Hallo","გამარჯობა"),
+    Phrase("Good morning","Субҳ ба хайр","Доброе утро","Қайырлы таң","Xayrli tong","Guten Morgen","დილა მშვიდობისა"),
+    Phrase("Good evening","Шоми хуш","Добрый вечер","Қайырлы кеш","Xayrli kech","Guten Abend","საღამო მშვიდობისა"),
+    Phrase("Good night","Шаби хуш","Спокойной ночи","Қайырлы түн","Xayrli tun","Gute Nacht","ღამე მშვიდობისა"),
+    Phrase("How are you?","Шумо чӣ хелед?","Как вы?","Қалыңыз қалай?","Qalaysiz?","Wie geht es dir?","როგორ ხარ?"),
+    Phrase("Thank you","Ташаккур","Спасибо","Рақмет","Rahmat","Danke","გმადლობთ"),
+    Phrase("You're welcome","Марҳамат","Пожалуйста","Оқасы жоқ","Arzimaydi","Bitte schön","არაფრის"),
+    Phrase("Please","Лутфан","Пожалуйста","Өтінемін","Iltimos","Bitte","გთხოვთ"),
+    Phrase("I love you","Ман туро дӯст медорам","Я тебя люблю","Мен сені жақсы көремін","Men seni sevaman","Ich liebe dich","მე შენ მიყვარხარ"),
+    Phrase("What is your name?","Номи шумо чист?","Как вас зовут?","Атыңыз кім?","Ismingiz nima?","Wie heißt du?","რა გქვია?"),
+    Phrase("My name is Fayzali","Номи ман Файзалӣ аст","Меня зовут Файзали","Менің атым Файзали","Mening ismim Fayzali","Ich heiße Fayzali","მე მქვია ფაიზალი"),
+    Phrase("Where are you from?","Шумо аз куҷоед?","Откуда вы?","Сіз қайдансыз?","Qayerdansiz?","Woher kommst du?","საიდან ხარ?"),
+    Phrase("I am from Tajikistan","Ман аз Тоҷикистон ҳастам","Я из Таджикистана","Мен Тәжікстаннанмын","Men Tojikistondanman","Ich komme aus Tadschikistan","მე ტაჯიკეთიდან ვარ"),
+    Phrase("Where is the station?","Истгоҳ дар куҷост?","Где находится вокзал?","Вокзал қайда?","Vokzal qayerda?","Wo ist der Bahnhof?","სად არის სადგური?"),
+    Phrase("How much does it cost?","Ин чанд пул аст?","Сколько это стоит?","Бұл қанша тұрады?","Bu qancha turadi?","Wie viel kostet das?","რა ღირს?"),
+    Phrase("I don't understand","Ман намефаҳмам","Я не понимаю","Мен түсінбеймін","Men tushunmayapman","Ich verstehe nicht","ვერ ვიგებ"),
+    Phrase("Please speak slowly","Лутфан оҳиста гап занед","Говорите, пожалуйста, медленнее","Баяу сөйлеңізші","Iltimos, sekin gapiring","Bitte sprechen Sie langsam","გთხოვთ, ნელა ილაპარაკეთ"),
+    Phrase("Can you help me?","Метавонед ба ман кӯмак кунед?","Вы можете мне помочь?","Маған көмектесе аласыз ба?","Menga yordam bera olasizmi?","Können Sie mir helfen?","შეგიძლიათ დამეხმაროთ?"),
+    Phrase("I am learning languages","Ман забонҳо меомӯзам","Я изучаю языки","Мен тіл үйреніп жүрмін","Men tillarni o‘rganyapman","Ich lerne Sprachen","მე ენებს ვსწავლობ"),
+    Phrase("See you tomorrow","Пагоҳ мебинем","Увидимся завтра","Ертең кездесеміз","Ertaga ko‘rishamiz","Bis morgen","ხვალ გნახავ")
 )
 
 fun value(p:Phrase, code:String)=when(code){
-    "en"->p.en;"tg"->p.tg;"ru"->p.ru;"kk"->p.kk;"uz"->p.uz;else->p.de
+    "en"->p.en;"tg"->p.tg;"ru"->p.ru;"kk"->p.kk;"uz"->p.uz;"ka"->p.ka;else->p.de
 }
 
 class MainActivity:ComponentActivity(){
@@ -190,7 +190,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,o
     fun speak(text:String,lang:Lang){
         val locale=when(lang.code){
             "tg"->Locale("tg","TJ");"ru"->Locale("ru","RU");"kk"->Locale("kk","KZ")
-            "uz"->Locale("uz","UZ");"de"->Locale.GERMAN;else->Locale.US
+            "uz"->Locale("uz","UZ");"de"->Locale.GERMAN;"ka"->Locale("ka","GE");else->Locale.US
         }
         tts.language=locale
         tts.speak(text,TextToSpeech.QUEUE_FLUSH,null,"takhmina")
@@ -223,7 +223,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,o
     fun swap(){val x=from;setFrom(to);setTo(x);input=TextFieldValue(output.ifBlank{input.text});output=""}
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())){
-        Header("Translator","6 languages • translate and learn in one place")
+        Header("Translator","7 languages • translate and learn in one place")
         Row(Modifier.padding(horizontal=20.dp),verticalAlignment=Alignment.CenterVertically){
             LanguagePicker(from,setFrom)
             IconButton(onClick={swap()}){Icon(Icons.Default.SwapHoriz,"Swap",tint=CYAN)}
@@ -387,11 +387,11 @@ fun ProfileScreen(xp:Int,streak:Int){
                     Column{Text("Takhmina Learner",fontSize=22.sp,fontWeight=FontWeight.ExtraBold);Text("Language explorer",color=TEXT2)}
                 }
                 Spacer(Modifier.height(20.dp))
-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly){Stat("${xp}","XP");Stat("${streak}","STREAK");Stat("6","LANGUAGES")}
+                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly){Stat("${xp}","XP");Stat("${streak}","STREAK");Stat("7","LANGUAGES")}
             }
         }
         Text("Achievements",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
-        Row(Modifier.padding(20.dp).horizontalScroll(rememberScrollState())){Achievement("🔥","7 day","Keep going");Achievement("⚡","100 XP","First sprint");Achievement("🌍","6 langs","Explorer")}
+        Row(Modifier.padding(20.dp).horizontalScroll(rememberScrollState())){Achievement("🔥","7 day","Keep going");Achievement("⚡","100 XP","First sprint");Achievement("🌍","7 langs","Explorer")}
         Text("Language progress",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
         LANGS.forEachIndexed{idx,l->
             Column(Modifier.padding(horizontal=20.dp,vertical=7.dp)){
