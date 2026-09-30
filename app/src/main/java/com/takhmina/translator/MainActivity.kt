@@ -309,7 +309,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,o
                 }
             }
         }
-        if(error.isNotBlank())Text(error,color=Color(0xFFFF9A9A),Modifier.padding(20.dp))
+        if(error.isNotBlank()) Text(error, color=Color(0xFFFF9A9A), modifier=Modifier.padding(20.dp))
         Spacer(Modifier.height(20.dp))
         Text("Быстрые фразы",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
         PHRASES.take(8).forEach{p->
@@ -392,7 +392,7 @@ fun PracticeScreen(onXp:()->Unit){
                 }
                 if(checked){
                     val ok=selected==q.tg
-                    Text(if(ok)"✓ Excellent! +15 XP" else "Correct answer: ${q.tg}",color=if(ok)GREEN else Color(0xFFFF9C9C),Modifier.padding(top=12.dp))
+                    Text(if(ok) "✓ Excellent! +15 XP" else "Correct answer: ${q.tg}", color=if(ok) GREEN else Color(0xFFFF9C9C), modifier=Modifier.padding(top=12.dp))
                     Button(onClick={if(ok){correctCount++;onXp()};index++;selected="";checked=false},Modifier.fillMaxWidth().padding(top=12.dp),shape=RoundedCornerShape(17.dp)){Text("NEXT CHALLENGE")}
                 }
             }
