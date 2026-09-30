@@ -45,6 +45,7 @@ import java.net.URLEncoder
 import okhttp3.Request
 import org.json.JSONObject
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 private val BG = Color(0xFF080B16)
 private val PANEL = Color(0xFF11172A)
@@ -53,6 +54,12 @@ private val PRIMARY = Color(0xFF7C5CFF)
 private val CYAN = Color(0xFF35D7FF)
 private val GREEN = Color(0xFF54E39B)
 private val TEXT2 = Color(0xFFA9B3CC)
+private val HTTP_CLIENT = OkHttpClient.Builder()
+    .connectTimeout(10, TimeUnit.SECONDS)
+    .readTimeout(15, TimeUnit.SECONDS)
+    .writeTimeout(10, TimeUnit.SECONDS)
+    .retryOnConnectionFailure(true)
+    .build()
 
 data class Lang(val code:String,val name:String,val flag:String)
 data class Phrase(val en:String,val tg:String,val ru:String,val kk:String,val uz:String,val de:String,val ka:String)
@@ -148,7 +155,7 @@ fun TakhminaApp(){
     var tab by remember{mutableIntStateOf(0)}
     var xp by remember{mutableIntStateOf(120)}
     var streak by remember{mutableIntStateOf(4)}
-    var appLang by remember{mutableStateOf("ru")}
+    var appLang by rememberSaveable{mutableStateOf("ru")}
     var from by remember{mutableStateOf(LANGS[1])}
     var to by remember{mutableStateOf(LANGS[0])}
     Scaffold(
@@ -234,7 +241,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,a
     var loading by remember{mutableStateOf(false)}
     var error by remember{mutableStateOf("")}
     var favorite by remember{mutableStateOf(false)}
-    val client=remember{OkHttpClient()}
+    val client=HTTP_CLIENT
     val voiceLauncher=rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()){result->
         val spoken=result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
         if(!spoken.isNullOrBlank())input=spoken
