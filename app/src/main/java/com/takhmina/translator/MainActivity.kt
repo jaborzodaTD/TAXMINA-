@@ -212,131 +212,130 @@ fun LanguagePicker(lang:Lang,onPick:(Lang)->Unit){
 }
 
 @Composable
-fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,onXp:()->Unit){
+fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,appLang:String,onXp:()->Unit){
     val context=LocalContext.current
     val scope=rememberCoroutineScope()
+    val ru=appLang!="tg"
     var input by remember{mutableStateOf(TextFieldValue(""))}
     var output by remember{mutableStateOf("")}
     var loading by remember{mutableStateOf(false)}
     var error by remember{mutableStateOf("")}
     var favorite by remember{mutableStateOf(false)}
-    val voiceLauncher=rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()){ result ->
-        val spoken=result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-        if(!spoken.isNullOrBlank()) input=TextFieldValue(spoken)
-    }
     val client=remember{OkHttpClient()}
+    val voiceLauncher=rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()){result->
+        val spoken=result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+        if(!spoken.isNullOrBlank())input=TextFieldValue(spoken)
+    }
+    val permissionLauncher=rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()){granted->
+        if(granted)launchVoice(context,from,voiceLauncher)
+    }
     val tts=remember{TextToSpeech(context,null)}
     DisposableEffect(Unit){onDispose{tts.shutdown()}}
 
-    fun speak(text:String,lang:Lang){
-        val locale=when(lang.code){
+    fun speak(text:String){
+        val locale=when(to.code){
             "tg"->Locale("tg","TJ");"ru"->Locale("ru","RU");"kk"->Locale("kk","KZ")
             "uz"->Locale("uz","UZ");"de"->Locale.GERMAN;"ka"->Locale("ka","GE");else->Locale.US
         }
-        tts.language=locale
+        if(tts.setLanguage(locale)<0)tts.language=Locale.US
         tts.speak(text,TextToSpeech.QUEUE_FLUSH,null,"takhmina")
     }
 
     fun copyText(text:String){
         val clipboard=context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("TAXMINA",text))
-        Toast.makeText(context,"Скопировано",Toast.LENGTH_SHORT).show()
-    }
-
-    fun startVoice(){
-        val intent=Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply{
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE,from.code)
-        }
-        try{voiceLauncher.launch(intent)}catch(_:Exception){
-            Toast.makeText(context,"Голосовой ввод недоступен",Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    suspend fun online(q:String):String=withContext(Dispatchers.IO){
-        val encodedQ = URLEncoder.encode(q, "UTF-8")
-        val encodedPair = URLEncoder.encode("${from.code}|${to.code}", "UTF-8")
-        val url = "https://api.mymemory.translated.net/get?q=$encodedQ&langpair=$encodedPair"
-        val request=Request.Builder().url(url).get().build()
-        client.newCall(request).execute().use{r->
-            if(!r.isSuccessful) throw IllegalStateException("HTTP ${r.code}")
-            JSONObject(r.body?.string()?:"").getJSONObject("responseData").getString("translatedText")
-        }
+        Toast.makeText(context,if(ru)"Скопировано" else "Нусха гирифта шуд",Toast.LENGTH_SHORT).show()
     }
 
     fun translate(){
-        if(input.text.isBlank())return
+        val q=input.text.trim()
+        if(q.isBlank())return
         loading=true;output="";error=""
         scope.launch{
             try{
-                val offline=offlineTranslate(input.text.trim(),from.code,to.code)
-                output=offline ?: online(input.text.trim())
+                val local=offlineTranslate(q,from.code,to.code)
+                output=local?:onlineTranslate(client,q,from.code,to.code)
+                if(output.isBlank())throw IllegalStateException("empty")
                 onXp()
-            }catch(e:Exception){
-                val offline=offlineTranslate(input.text.trim(),from.code,to.code)
-                output=offline ?: ""
-                if(output.isBlank())error="Не удалось выполнить перевод. Проверьте интернет и попробуйте ещё раз."
+            }catch(_:Exception){
+                val local=offlineTranslate(q,from.code,to.code)
+                if(!local.isNullOrBlank())output=local
+                else error=if(ru)"Не удалось перевести. Проверьте интернет и попробуйте ещё раз." else "Тарҷума иҷро нашуд. Интернетро санҷед."
             }finally{loading=false}
         }
     }
 
-    fun swap(){val x=from;setFrom(to);setTo(x);input=TextFieldValue(output.ifBlank{input.text});output=""}
+    fun swap(){
+        val old=from
+        setFrom(to);setTo(old)
+        input=TextFieldValue(output.ifBlank{input.text})
+        output=""
+    }
+
+    fun startVoice(){
+        if(ContextCompat.checkSelfPermission(context,Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED)
+            launchVoice(context,from,voiceLauncher)
+        else permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+    }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())){
-        Header("Переводчик","🇹🇯 Тоҷикӣ • 🇷🇺 Русский • ещё 5 языков")
-        Row(Modifier.padding(horizontal=20.dp),verticalAlignment=Alignment.CenterVertically){
-            LanguagePicker(from,setFrom)
-            IconButton(onClick={swap()}){Icon(Icons.Default.SwapHoriz,"Swap",tint=CYAN)}
-            LanguagePicker(to,setTo)
-        }
-        Spacer(Modifier.height(12.dp))
-        Card(Modifier.padding(horizontal=20.dp).fillMaxWidth(),RoundedCornerShape(28.dp),colors=CardDefaults.cardColors(containerColor=PANEL)){
-            Column(Modifier.padding(17.dp)){
-                OutlinedTextField(
-                    value=input,onValueChange={input=it;error=""},
-                    modifier=Modifier.fillMaxWidth().heightIn(min=145.dp),
-                    placeholder={Text("Напишите, вставьте или используйте голос…",color=TEXT2)},
-                    label={Text("${from.flag} ${from.name}")},
-                    shape=RoundedCornerShape(20.dp)
-                )
-                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End){
-                    IconButton(onClick={::startVoice}){Icon(Icons.Default.Mic,"Voice input",tint=CYAN)}
-                    IconButton(onClick={ {input=TextFieldValue("");output=""} }){Icon(Icons.Default.DeleteOutline,"Clear",tint=TEXT2)}
+        Header(if(ru)"Переводчик" else "Тарҷумон",if(ru)"Русский ↔ Тоҷикӣ • онлайн + офлайн" else "Тоҷикӣ ↔ Русӣ • онлайн + офлайн")
+        Card(Modifier.padding(horizontal=16.dp).fillMaxWidth(),RoundedCornerShape(30.dp),colors=CardDefaults.cardColors(containerColor=PANEL)){
+            Column(Modifier.padding(16.dp)){
+                Row(verticalAlignment=Alignment.CenterVertically){
+                    LanguagePicker(from,setFrom)
+                    Spacer(Modifier.width(4.dp))
+                    IconButton(onClick=::swap){Icon(Icons.Default.SwapHoriz,if(ru)"Поменять языки" else "Иваз кардани забонҳо",tint=CYAN)}
+                    Spacer(Modifier.width(4.dp))
+                    LanguagePicker(to,setTo)
                 }
-                Button(
-                    onClick={::translate},enabled=input.text.isNotBlank()&&!loading,
-                    modifier=Modifier.fillMaxWidth().height(55.dp),shape=RoundedCornerShape(18.dp)
-                ){
-                    if(loading)CircularProgressIndicator(Modifier.size(22.dp),strokeWidth=2.dp)
-                    else{Icon(Icons.Default.AutoAwesome,null);Spacer(Modifier.width(8.dp));Text("TRANSLATE",fontWeight=FontWeight.Bold)}
+                Spacer(Modifier.height(14.dp))
+                Surface(shape=RoundedCornerShape(22.dp),color=Color(0xFF0B1120)){
+                    Column(Modifier.padding(14.dp)){
+                        Text(from.flag+" "+from.name,color=CYAN,fontWeight=FontWeight.Bold)
+                        Spacer(Modifier.height(6.dp))
+                        OutlinedTextField(
+                            value=input,
+                            onValueChange={input=it;error=""},
+                            modifier=Modifier.fillMaxWidth().heightIn(min=130.dp),
+                            placeholder={Text(if(ru)"Напишите здесь: «Привет, как ты?»" else "Ин ҷо нависед: «Салом, чӣ хелӣ?»",color=TEXT2)},
+                            textStyle=LocalTextStyle.current.copy(fontSize=20.sp),
+                            shape=RoundedCornerShape(18.dp)
+                        )
+                        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End){
+                            IconButton(onClick=::startVoice){Icon(Icons.Default.Mic,if(ru)"Голос" else "Овоз",tint=CYAN)}
+                            IconButton(onClick={input=TextFieldValue("");output="";error=""}){Icon(Icons.Default.DeleteOutline,if(ru)"Очистить" else "Тоза кардан",tint=TEXT2)}
+                        }
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
+                Button(onClick=::translate,enabled=input.text.isNotBlank()&&!loading,modifier=Modifier.fillMaxWidth().height(56.dp),shape=RoundedCornerShape(18.dp)){
+                    if(loading)CircularProgressIndicator(Modifier.size(22.dp),strokeWidth=2.dp,color=Color.White)
+                    else{Icon(Icons.Default.AutoAwesome,null);Spacer(Modifier.width(8.dp));Text(if(ru)"ПЕРЕВЕСТИ" else "ТАРҶУМА КАРДАН",fontWeight=FontWeight.ExtraBold)}
+                }
+                Spacer(Modifier.height(14.dp))
+                Surface(shape=RoundedCornerShape(22.dp),color=PANEL_2){
+                    Column(Modifier.fillMaxWidth().padding(16.dp)){
+                        Row(verticalAlignment=Alignment.CenterVertically){
+                            Text(to.flag+" "+to.name,color=CYAN,fontWeight=FontWeight.Bold)
+                            Spacer(Modifier.weight(1f))
+                            if(output.isNotBlank()){
+                                IconButton(onClick={favorite=!favorite}){Icon(if(favorite)Icons.Default.Favorite else Icons.Default.FavoriteBorder,if(ru)"Избранное" else "Маъқул",tint=if(favorite)Color(0xFFFF5D86) else TEXT2)}
+                                IconButton(onClick={::speak}){Icon(Icons.Default.VolumeUp,if(ru)"Озвучить" else "Бо овоз",tint=CYAN)}
+                                IconButton(onClick={ {copyText(output)} }){Icon(Icons.Default.ContentCopy,if(ru)"Копировать" else "Нусха",tint=TEXT2)}
+                            }
+                        }
+                        Spacer(Modifier.height(5.dp))
+                        if(output.isBlank())Text(if(ru)"Здесь появится перевод" else "Тарҷума дар ҳамин ҷо пайдо мешавад",color=TEXT2,fontSize=17.sp,modifier=Modifier.padding(vertical=28.dp))
+                        else Text(output,fontSize=25.sp,fontWeight=FontWeight.SemiBold,lineHeight=33.sp)
+                    }
                 }
             }
         }
-        if(output.isNotBlank()){
-            Spacer(Modifier.height(14.dp))
-            Card(Modifier.padding(horizontal=20.dp).fillMaxWidth(),RoundedCornerShape(28.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF202A4A))){
-                Column(Modifier.padding(20.dp)){
-                    Row(verticalAlignment=Alignment.CenterVertically){
-                        Text("${to.flag} ${to.name}",color=CYAN,fontWeight=FontWeight.Bold)
-                        Spacer(Modifier.weight(1f))
-                        IconButton(onClick={ {favorite=!favorite} }){Icon(if(favorite)Icons.Default.Favorite else Icons.Default.FavoriteBorder,"Favorite",tint=if(favorite)Color(0xFFFF5D86) else TEXT2)}
-                    }
-                    Text(output,fontSize=24.sp,fontWeight=FontWeight.SemiBold)
-                    Spacer(Modifier.height(10.dp))
-                    Row{
-                        AssistChip(onClick={},label={Text("+5 XP")},leadingIcon={Icon(Icons.Default.Bolt,null)})
-                        Spacer(Modifier.width(7.dp))
-                        IconButton(onClick={ {speak(output,to)} }){Icon(Icons.Default.VolumeUp,"Speak")}
-                        IconButton(onClick={ {copyText(output)} }){Icon(Icons.Default.ContentCopy,"Copy")}
-                    }
-                }
-            }
-        }
-        if(error.isNotBlank()) Text(error, color=Color(0xFFFF9A9A), modifier=Modifier.padding(20.dp))
-        Spacer(Modifier.height(20.dp))
-        Text("Быстрые фразы",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold)
-        PHRASES.take(8).forEach{p->
-            Card(Modifier.padding(horizontal=20.dp,vertical=4.dp).fillMaxWidth().clickable{input=TextFieldValue(value(p,from.code));output=""},RoundedCornerShape(18.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF0F1527))){
+        if(error.isNotBlank())Text(error,color=Color(0xFFFF9A9A),modifier=Modifier.padding(18.dp))
+        Text(if(ru)"Быстрые фразы" else "Ибораҳои зуд",Modifier.padding(horizontal=20.dp,vertical=18.dp),fontSize=20.sp,fontWeight=FontWeight.ExtraBold)
+        QUICK_PHRASES.take(8).forEach{p->
+            Card(Modifier.padding(horizontal=16.dp,vertical=4.dp).fillMaxWidth().clickable{input=TextFieldValue(value(p,from.code));output=""},RoundedCornerShape(18.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF0E1527))){
                 Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){
                     Icon(Icons.Default.FlashOn,null,tint=CYAN)
                     Text(value(p,from.code),Modifier.weight(1f).padding(horizontal=12.dp))
@@ -344,7 +343,40 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,o
                 }
             }
         }
-        Spacer(Modifier.height(25.dp))
+        Card(Modifier.padding(16.dp).fillMaxWidth(),RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=PANEL)){
+            Row(Modifier.padding(17.dp),verticalAlignment=Alignment.CenterVertically){
+                Icon(Icons.Default.MenuBook,null,tint=CYAN)
+                Column(Modifier.weight(1f).padding(horizontal=12.dp)){
+                    Text(if(ru)"Офлайн словарь" else "Луғати офлайн",fontWeight=FontWeight.Bold)
+                    Text((if(ru)"Русский ↔ Тоҷикӣ • " else "Тоҷикӣ ↔ Русӣ • ")+(RU_TG_DICTIONARY.size*2)+"+ записей",color=TEXT2,fontSize=12.sp)
+                }
+                Text((RU_TG_DICTIONARY.size*2).toString()+"+",color=GREEN,fontWeight=FontWeight.ExtraBold)
+            }
+        }
+        Spacer(Modifier.height(28.dp))
+    }
+}
+
+private fun launchVoice(context:Context,from:Lang,launcher:androidx.activity.result.ActivityResultLauncher<Intent>){
+    val locale=when(from.code){"tg"->"tg-TJ";"ru"->"ru-RU";"kk"->"kk-KZ";"uz"->"uz-UZ";"de"->"de-DE";"ka"->"ka-GE";else->"en-US"}
+    val intent=Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply{
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE,locale)
+    }
+    try{launcher.launch(intent)}catch(_:Exception){Toast.makeText(context,"Speech recognition unavailable",Toast.LENGTH_SHORT).show()}
+}
+
+private suspend fun onlineTranslate(client:OkHttpClient,q:String,from:String,to:String):String=withContext(Dispatchers.IO){
+    val encodedQ=URLEncoder.encode(q,"UTF-8")
+    val encodedPair=URLEncoder.encode(from+"|"+to,"UTF-8")
+    val url="https://api.mymemory.translated.net/get?q="+encodedQ+"&langpair="+encodedPair+"&mt=1"
+    val request=Request.Builder().url(url).header("Accept","application/json").get().build()
+    client.newCall(request).execute().use{r->
+        if(!r.isSuccessful)throw IllegalStateException("HTTP "+r.code)
+        val json=JSONObject(r.body?.string()?:"")
+        val result=json.optJSONObject("responseData")?.optString("translatedText").orEmpty().trim()
+        if(result.isBlank())throw IllegalStateException("empty translation")
+        result.replace("&quot;",""").replace("&#39;","'").replace("&amp;","&").replace("&lt;","<").replace("&gt;",">")
     }
 }
 
