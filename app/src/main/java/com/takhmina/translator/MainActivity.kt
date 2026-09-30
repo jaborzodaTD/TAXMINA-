@@ -35,7 +35,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
@@ -349,7 +348,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,a
         if(error.isNotBlank())Text(error,color=Color(0xFFFF9A9A),modifier=Modifier.padding(18.dp))
         Text(if(ru)"Быстрые фразы" else "Ибораҳои зуд",Modifier.padding(horizontal=20.dp,vertical=18.dp),fontSize=20.sp,fontWeight=FontWeight.ExtraBold)
         PHRASES.take(8).forEach{p->
-            Card(Modifier.padding(horizontal=16.dp,vertical=4.dp).fillMaxWidth().clickable{input=TextFieldValue(value(p,from.code));output=""},RoundedCornerShape(18.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF0E1527))){
+            Card(Modifier.padding(horizontal=16.dp,vertical=4.dp).fillMaxWidth().clickable{input=value(p,from.code);output=""},RoundedCornerShape(18.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF0E1527))){
                 Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){
                     Icon(Icons.Default.FlashOn,null,tint=CYAN)
                     Text(value(p,from.code),Modifier.weight(1f).padding(horizontal=12.dp))
