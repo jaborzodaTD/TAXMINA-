@@ -46,6 +46,7 @@ import okhttp3.Request
 import org.json.JSONObject
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit
 
 private val BG = Color(0xFF080B16)
 private val PANEL = Color(0xFF11172A)
@@ -54,6 +55,12 @@ private val PRIMARY = Color(0xFF7C5CFF)
 private val CYAN = Color(0xFF35D7FF)
 private val GREEN = Color(0xFF54E39B)
 private val TEXT2 = Color(0xFFA9B3CC)
+private val HTTP_CLIENT = OkHttpClient.Builder()
+    .connectTimeout(10, TimeUnit.SECONDS)
+    .readTimeout(15, TimeUnit.SECONDS)
+    .writeTimeout(10, TimeUnit.SECONDS)
+    .retryOnConnectionFailure(true)
+    .build()
 private val HTTP_CLIENT = OkHttpClient.Builder()
     .connectTimeout(10, TimeUnit.SECONDS)
     .readTimeout(15, TimeUnit.SECONDS)
