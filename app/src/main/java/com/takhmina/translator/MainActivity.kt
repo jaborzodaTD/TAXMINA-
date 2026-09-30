@@ -314,7 +314,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,a
                     else{Icon(Icons.Default.AutoAwesome,null);Spacer(Modifier.width(8.dp));Text(if(ru)"ПЕРЕВЕСТИ" else "ТАРҶУМА КАРДАН",fontWeight=FontWeight.ExtraBold)}
                 }
                 Spacer(Modifier.height(14.dp))
-                Surface(shape=RoundedCornerShape(22.dp),color=PANEL_2){
+                Surface(shape=RoundedCornerShape(22.dp),color=PANEL2){
                     Column(Modifier.fillMaxWidth().padding(16.dp)){
                         Row(verticalAlignment=Alignment.CenterVertically){
                             Text(to.flag+" "+to.name,color=CYAN,fontWeight=FontWeight.Bold)
@@ -334,7 +334,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,a
         }
         if(error.isNotBlank())Text(error,color=Color(0xFFFF9A9A),modifier=Modifier.padding(18.dp))
         Text(if(ru)"Быстрые фразы" else "Ибораҳои зуд",Modifier.padding(horizontal=20.dp,vertical=18.dp),fontSize=20.sp,fontWeight=FontWeight.ExtraBold)
-        QUICK_PHRASES.take(8).forEach{p->
+        PHRASES.take(8).forEach{p->
             Card(Modifier.padding(horizontal=16.dp,vertical=4.dp).fillMaxWidth().clickable{input=TextFieldValue(value(p,from.code));output=""},RoundedCornerShape(18.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF0E1527))){
                 Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){
                     Icon(Icons.Default.FlashOn,null,tint=CYAN)
@@ -376,7 +376,7 @@ private suspend fun onlineTranslate(client:OkHttpClient,q:String,from:String,to:
         val json=JSONObject(r.body?.string()?:"")
         val result=json.optJSONObject("responseData")?.optString("translatedText").orEmpty().trim()
         if(result.isBlank())throw IllegalStateException("empty translation")
-        result.replace("&quot;",String.fromCharCode(34)).replace("&#39;",String.fromCharCode(39)).replace("&amp;","&").replace("&lt;","<").replace("&gt;",">")
+        result.replace("&amp;","&").replace("&lt;","<").replace("&gt;",">")
     }
 }
 
@@ -476,9 +476,9 @@ fun ProfileScreen(xp:Int,streak:Int,appLang:String,setAppLanguage:(String)->Unit
                 Text(if(appLang=="tg")"Забони барнома" else "Язык приложения",color=TEXT2,fontSize=12.sp)
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth()){
-                    Button(onClick={setAppLanguage("ru")},modifier=Modifier.weight(1f),colors=ButtonDefaults.buttonColors(containerColor=if(appLang=="ru")PRIMARY else PANEL_2)){Text("🇷🇺 Русский")}
+                    Button(onClick={setAppLanguage("ru")},modifier=Modifier.weight(1f),colors=ButtonDefaults.buttonColors(containerColor=if(appLang=="ru")PRIMARY else PANEL2)){Text("🇷🇺 Русский")}
                     Spacer(Modifier.width(8.dp))
-                    Button(onClick={setAppLanguage("tg")},modifier=Modifier.weight(1f),colors=ButtonDefaults.buttonColors(containerColor=if(appLang=="tg")PRIMARY else PANEL_2)){Text("🇹🇯 Тоҷикӣ")}
+                    Button(onClick={setAppLanguage("tg")},modifier=Modifier.weight(1f),colors=ButtonDefaults.buttonColors(containerColor=if(appLang=="tg")PRIMARY else PANEL2)){Text("🇹🇯 Тоҷикӣ")}
                 }
             }
         }
