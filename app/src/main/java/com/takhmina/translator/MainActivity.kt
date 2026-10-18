@@ -67,7 +67,9 @@ data class Phrase(val en:String,val tg:String,val ru:String,val kk:String,val uz
 val LANGS = listOf(
     Lang("tg","Тоҷикӣ","🇹🇯"), Lang("ru","Русский","🇷🇺"),
     Lang("en","English","🇬🇧"), Lang("kk","Қазақша","🇰🇿"),
-    Lang("uz","O‘zbekcha","🇺🇿"), Lang("de","Deutsch","🇩🇪")
+    Lang("uz","O‘zbekcha","🇺🇿"), Lang("de","Deutsch","🇩🇪"),
+    Lang("fr","Français","🇫🇷"), Lang("es","Español","🇪🇸"),
+    Lang("ar","العربية","🇸🇦"), Lang("tr","Türkçe","🇹🇷")
 )
 
 val PHRASES = listOf(
@@ -94,7 +96,7 @@ val PHRASES = listOf(
 )
 
 fun value(p:Phrase, code:String)=when(code){
-    "en"->p.en;"tg"->p.tg;"ru"->p.ru;"kk"->p.kk;"uz"->p.uz;"de"->p.de;else->p.ru
+    "en"->p.en;"tg"->p.tg;"ru"->p.ru;"kk"->p.kk;"uz"->p.uz;"de"->p.de;else->p.en
 }
 fun normalizeText(text:String):String = text.trim().lowercase(Locale.ROOT).replace('ё','е').replace(Regex("\\s+")," ").trimEnd('.','!','?',',','،','؟')
 
@@ -155,10 +157,10 @@ fun TakhminaApp(){
     val to=LANGS.firstOrNull{it.code==toCode}?:LANGS[0]
     Scaffold(containerColor=BG,bottomBar={
         NavigationBar(containerColor=Color(0xFF0D1222)){
-            val nav=if(appLang=="tg") listOf("Тарҷума" to Icons.Default.Translate,"Омӯзиш" to Icons.Default.School,"Машқ" to Icons.Default.Bolt,"Профил" to Icons.Default.Person) else listOf("Перевод" to Icons.Default.Translate,"Обучение" to Icons.Default.School,"Практика" to Icons.Default.Bolt,"Профиль" to Icons.Default.Person)
+            val nav=if(appLang=="tg") listOf("Тарҷума" to Icons.Default.Translate,"Луғат" to Icons.Default.MenuBook,"Омӯзиш" to Icons.Default.School,"Машқ" to Icons.Default.Bolt,"Профил" to Icons.Default.Person) else listOf("Перевод" to Icons.Default.Translate,"Словарь" to Icons.Default.MenuBook,"Обучение" to Icons.Default.School,"Практика" to Icons.Default.Bolt,"Профиль" to Icons.Default.Person)
             nav.forEachIndexed{i,(label,icon)->NavigationBarItem(selected=tab==i,onClick={tab=i},icon={Icon(icon,null)},label={Text(label)},colors=NavigationBarItemDefaults.colors(selectedIconColor=Color.White,selectedTextColor=Color.White,indicatorColor=PRIMARY.copy(alpha=.28f),unselectedIconColor=TEXT2,unselectedTextColor=TEXT2))}
         }
-    }){pad->Box(Modifier.fillMaxSize().padding(pad)){when(tab){0->TranslatorScreen(from,to,{fromCode=it.code},{toCode=it.code},appLang,{xp+=5});1->LearnScreen(xp,streak,appLang){xp+=10};2->PracticeScreen(appLang){xp+=15};else->ProfileScreen(xp,streak,appLang){appLang=it}}}}
+    }){pad->Box(Modifier.fillMaxSize().padding(pad)){when(tab){0->TranslatorScreen(from,to,{fromCode=it.code},{toCode=it.code},appLang,{xp+=5});1->DictionaryScreen(appLang);2->LearnScreen(xp,streak,appLang){xp+=10};3->PracticeScreen(appLang){xp+=15};else->ProfileScreen(xp,streak,appLang){appLang=it}}}}
 }
 
 @Composable
@@ -173,7 +175,7 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,a
     val voiceLauncher=rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()){result->result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()?.let{input=it}}
     val permissionLauncher=rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()){if(it)launchVoice(context,from,voiceLauncher)}
     val tts=remember{TextToSpeech(context,null)};DisposableEffect(Unit){onDispose{tts.shutdown()}}
-    fun speak(text:String){val locale=when(to.code){"tg"->Locale("tg","TJ");"ru"->Locale("ru","RU");"kk"->Locale("kk","KZ");"uz"->Locale("uz","UZ");"de"->Locale.GERMAN;else->Locale.US};if(tts.setLanguage(locale)<0)tts.language=Locale.US;tts.speak(text,TextToSpeech.QUEUE_FLUSH,null,"takhmina")}
+    fun speak(text:String){val locale=when(to.code){"tg"->Locale("tg","TJ");"ru"->Locale("ru","RU");"kk"->Locale("kk","KZ");"uz"->Locale("uz","UZ");"de"->Locale.GERMAN;"fr"->Locale.FRENCH;"es"->Locale("es","ES");"ar"->Locale("ar","SA");"tr"->Locale("tr","TR");else->Locale.US};if(tts.setLanguage(locale)<0)tts.language=Locale.US;tts.speak(text,TextToSpeech.QUEUE_FLUSH,null,"takhmina")}
     fun copyText(text:String){val clipboard=context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager;clipboard.setPrimaryClip(ClipData.newPlainText("TAXMINA",text));Toast.makeText(context,if(ru)"Скопировано" else "Нусха гирифта шуд",Toast.LENGTH_SHORT).show()}
     fun translate(){val q=input.trim();if(q.isBlank())return;loading=true;output="";error="";scope.launch{try{val local=offlineTranslate(q,from.code,to.code);output=local?:onlineTranslate(HTTP_CLIENT,q,from.code,to.code);if(output.isBlank())throw IllegalStateException("empty");onXp()}catch(_:Exception){val local=offlineTranslate(q,from.code,to.code);if(!local.isNullOrBlank())output=local else error=if(ru)"Не удалось перевести. Проверьте интернет и попробуйте ещё раз." else "Тарҷума иҷро нашуд. Интернетро санҷед."}finally{loading=false}}}
     fun swap(){val old=from;setFrom(to);setTo(old);input=output.ifBlank{input};output=""}
@@ -193,9 +195,53 @@ fun TranslatorScreen(from:Lang,to:Lang,setFrom:(Lang)->Unit,setTo:(Lang)->Unit,a
         Spacer(Modifier.height(28.dp))
     }
 
-private fun launchVoice(context:Context,from:Lang,launcher:androidx.activity.result.ActivityResultLauncher<Intent>){val locale=when(from.code){"tg"->"tg-TJ";"ru"->"ru-RU";"kk"->"kk-KZ";"uz"->"uz-UZ";"de"->"de-DE";else->"en-US"};val intent=Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply{putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);putExtra(RecognizerIntent.EXTRA_LANGUAGE,locale)};try{launcher.launch(intent)}catch(_:Exception){Toast.makeText(context,"Speech recognition unavailable",Toast.LENGTH_SHORT).show()}}
+private fun launchVoice(context:Context,from:Lang,launcher:androidx.activity.result.ActivityResultLauncher<Intent>){val locale=when(from.code){"tg"->"tg-TJ";"ru"->"ru-RU";"kk"->"kk-KZ";"uz"->"uz-UZ";"de"->"de-DE";"fr"->"fr-FR";"es"->"es-ES";"ar"->"ar-SA";"tr"->"tr-TR";else->"en-US"};val intent=Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply{putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);putExtra(RecognizerIntent.EXTRA_LANGUAGE,locale)};try{launcher.launch(intent)}catch(_:Exception){Toast.makeText(context,"Speech recognition unavailable",Toast.LENGTH_SHORT).show()}}
 
 private suspend fun onlineTranslate(client:OkHttpClient,q:String,from:String,to:String):String=withContext(Dispatchers.IO){val encodedQ=URLEncoder.encode(q,"UTF-8");val encodedPair=URLEncoder.encode(from+"|"+to,"UTF-8");val url="https://api.mymemory.translated.net/get?q="+encodedQ+"&langpair="+encodedPair+"&mt=1";val request=Request.Builder().url(url).header("Accept","application/json").get().build();client.newCall(request).execute().use{r->if(!r.isSuccessful)throw IllegalStateException("HTTP "+r.code);val json=JSONObject(r.body?.string()?:"");val result=json.optJSONObject("responseData")?.optString("translatedText").orEmpty().trim();if(result.isBlank())throw IllegalStateException("empty translation");result.replace("&amp;","&").replace("&lt;","<").replace("&gt;",">")}}
+
+
+@Composable
+fun DictionaryScreen(appLang:String){
+    var query by rememberSaveable { mutableStateOf("") }
+    var direction by rememberSaveable { mutableStateOf("ru") }
+    val ru = appLang != "tg"
+    val entries = remember(direction) {
+        if(direction=="en") EN_TG_DICTIONARY.map { it.en to it.tg }
+        else RU_TG_DICTIONARY.map { it.ru to it.tg }
+    }
+    val filtered = remember(query,direction) {
+        if(query.isBlank()) entries.take(250)
+        else entries.filter { it.first.contains(query.trim(),ignoreCase=true) || it.second.contains(query.trim(),ignoreCase=true) }.take(250)
+    }
+    Column(Modifier.fillMaxSize()) {
+        Header(if(ru) "Словарь" else "Луғат", if(ru) "Русский ↔ тоҷикӣ и English ↔ тоҷикӣ" else "Русӣ ↔ тоҷикӣ ва English ↔ тоҷикӣ")
+        Row(Modifier.padding(horizontal=16.dp), verticalAlignment=Alignment.CenterVertically) {
+            FilterChip(selected=direction=="ru",onClick={direction="ru"},label={Text(if(ru) "Русский ↔ Тоҷикӣ" else "Русӣ ↔ Тоҷикӣ")})
+            Spacer(Modifier.width(8.dp))
+            FilterChip(selected=direction=="en",onClick={direction="en"},label={Text("English ↔ Тоҷикӣ")})
+        }
+        OutlinedTextField(value=query,onValueChange={query=it},modifier=Modifier.fillMaxWidth().padding(horizontal=16.dp,vertical=10.dp),placeholder={Text(if(ru) "Найти слово или перевод" else "Калима ё тарҷумаро ҷустуҷӯ кунед")},leadingIcon={Icon(Icons.Default.Search,null)},singleLine=true,shape=RoundedCornerShape(16.dp))
+        Text(if(ru) "${filtered.size} слов в списке" else "${filtered.size} калима дар рӯйхат",modifier=Modifier.padding(horizontal=20.dp,vertical=4.dp),color=TEXT2,fontSize=12.sp)
+        Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+            filtered.forEach { entry ->
+                Card(Modifier.fillMaxWidth().padding(horizontal=16.dp,vertical=4.dp),RoundedCornerShape(15.dp),colors=CardDefaults.cardColors(containerColor=PANEL)) {
+                    Row(Modifier.fillMaxWidth().padding(14.dp),verticalAlignment=Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(entry.first,fontWeight=FontWeight.SemiBold,fontSize=16.sp)
+                            Spacer(Modifier.height(3.dp))
+                            Text(entry.second,color=CYAN,fontSize=16.sp)
+                        }
+                        IconButton(onClick={
+                            val clipboard=LocalContext.current.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            clipboard.setPrimaryClip(ClipData.newPlainText("TAXMINA",entry.second))
+                        }) { Icon(Icons.Default.ContentCopy,if(ru) "Копировать" else "Нусха",tint=TEXT2) }
+                    }
+                }
+            }
+            if(filtered.isEmpty()) Text(if(ru) "Ничего не найдено" else "Ҳеҷ чиз ёфт нашуд",Modifier.padding(24.dp),color=TEXT2)
+        }
+    }
+}
 
 @Composable
 fun LearnScreen(xp:Int,streak:Int,appLang:String,onXp:()->Unit){Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())){Header(if(appLang=="tg")"Омӯзиш" else "Обучение",if(appLang=="tg")"Аз калимаҳои аввал то гуфтугӯи озод" else "От первых слов до уверенного общения");Card(Modifier.padding(horizontal=20.dp).fillMaxWidth(),RoundedCornerShape(28.dp),colors=CardDefaults.cardColors(containerColor=PANEL)){Row(Modifier.padding(20.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(62.dp).clip(CircleShape).background(Brush.linearGradient(listOf(PRIMARY,CYAN))),contentAlignment=Alignment.Center){Text("🔥",fontSize=27.sp)};Spacer(Modifier.width(14.dp));Column(Modifier.weight(1f)){Text("${streak} ${if(appLang=="tg")"рӯз пай дар пай" else "дней подряд"}",fontSize=20.sp,fontWeight=FontWeight.Bold);Text("${xp} XP • ${if(appLang=="tg")"Ҳадафи рӯзона 20 XP" else "Дневная цель 20 XP"}",color=TEXT2)};Icon(Icons.Default.ChevronRight,null,tint=CYAN)}};Spacer(Modifier.height(18.dp));Text(if(appLang=="tg")"Роҳи омӯзиш" else "Путь обучения",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold);val units=listOf(Triple("A1","Greetings & basics","Hello • names • countries"),Triple("A1","Everyday life","Food • time • family"),Triple("A2","Useful conversations","Questions • directions • shopping"),Triple("B1","Work & travel","Jobs • plans • real situations"),Triple("B2","Fluency lab","Opinions • natural expressions • nuance"));units.forEachIndexed{i,u->Card(Modifier.padding(horizontal=20.dp,vertical=6.dp).fillMaxWidth().clickable{onXp()},RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=if(i==0)PANEL2 else Color(0xFF0E1425))){Row(Modifier.padding(17.dp),verticalAlignment=Alignment.CenterVertically){Box(Modifier.size(48.dp).clip(CircleShape).background(if(i==0)PRIMARY.copy(.28f) else Color(0xFF1A2239)),contentAlignment=Alignment.Center){Text("${i+1}",fontWeight=FontWeight.Bold)};Spacer(Modifier.width(14.dp));Column(Modifier.weight(1f)){Text("${u.first} • ${u.second}",fontWeight=FontWeight.Bold,fontSize=16.sp);Text(if(appLang=="tg")"Луғат • грамматика • гуфтор" else u.third,color=TEXT2,fontSize=13.sp)};Icon(if(i==0)Icons.Default.PlayArrow else Icons.Default.Lock,null,tint=if(i==0)CYAN else TEXT2)}}};Spacer(Modifier.height(22.dp));Text(if(appLang=="tg")"Бахшҳои омӯзишӣ" else "Skill packs",Modifier.padding(horizontal=20.dp),fontSize=19.sp,fontWeight=FontWeight.Bold);Row(Modifier.padding(20.dp).horizontalScroll(rememberScrollState())){listOf("Vocabulary","Grammar","Listening","Speaking","Travel").forEach{SkillCard(it)}};Spacer(Modifier.height(30.dp))}}
