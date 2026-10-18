@@ -202,6 +202,7 @@ private suspend fun onlineTranslate(client:OkHttpClient,q:String,from:String,to:
 
 @Composable
 fun DictionaryScreen(appLang:String){
+    val context=LocalContext.current
     var query by rememberSaveable { mutableStateOf("") }
     var direction by rememberSaveable { mutableStateOf("ru") }
     val ru = appLang != "tg"
@@ -232,7 +233,7 @@ fun DictionaryScreen(appLang:String){
                             Text(entry.second,color=CYAN,fontSize=16.sp)
                         }
                         IconButton(onClick={
-                            val clipboard=LocalContext.current.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            val clipboard=context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             clipboard.setPrimaryClip(ClipData.newPlainText("TAXMINA",entry.second))
                         }) { Icon(Icons.Default.ContentCopy,if(ru) "Копировать" else "Нусха",tint=TEXT2) }
                     }
